@@ -1,10 +1,23 @@
 import os
 from pathlib import Path
 
-
 import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import URL, create_engine, text
+
+class Pc:
+
+    def __init__(self, name = os.getenv("DB_NAME")):
+        self.engine = create_engine(URL.create(
+            drivername="postgresql+psycopg",
+            username=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            host=os.getenv("DB_HOST", "localhost"),
+            port=int(os.getenv("DB_PORT", "5432")),
+            database=name,
+            )
+            )
+
 
 ENV_FILE = Path('C:/Users/rosie/PycharmProjects/Git Testing/.env')
 
