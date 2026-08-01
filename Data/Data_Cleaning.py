@@ -12,3 +12,7 @@ pc = Pc()
 df = pd.read_sql("""
 
 """, con = pc.engine)
+
+for i in range(3):
+    print(i)
+
