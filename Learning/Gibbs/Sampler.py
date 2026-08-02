@@ -65,13 +65,8 @@ class GibbsSampler:
         scov = self.sample_cov()
         return smean, scov
 
-gs = GibbsSampler([1,2], 2, 3, [[1,0],[0,1]], samples)
+    def get_means(self):
+        return self.meansamples
 
-mean = np.array([3, 4])
-cov = np.array([[2,0.5],[0.5,3]])
-samples = np.random.multivariate_normal(mean, cov, 5000)
 
-mean_samples, cov_samples = gs.samples(5000, 500)
 
-print(np.mean(mean_samples, axis=0))
-print(np.mean(cov_samples, axis=0))
