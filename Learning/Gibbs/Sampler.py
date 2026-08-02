@@ -68,5 +68,8 @@ class GibbsSampler:
     def get_means(self):
         return self.meansamples
 
+    def get_cov(self):
+        return self.covsamples
+
 
 

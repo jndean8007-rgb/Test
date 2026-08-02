@@ -1,5 +1,7 @@
 from Sampler import GibbsSampler
+import numpy as np
 import tkinter as tk
+from Transform import Renderer
 
 class GibbsVisual:
 
@@ -12,33 +14,39 @@ class GibbsVisual:
         self.speed = speed
         self.running = False
         self.shapes = []
+        self.angles = [0,0]
+        self.Renderer = Renderer(self.scale, self.angles)
+        self.drag_data = {'x' : 0, 'y' : 0, 'Item' : None}
 
         self.window = tk.Tk()
         self.window.title("Gibbs Visual")
-        self.window.configure(background="white")
+        self.window.configure(background="black")
         self.window.resizable(width=False, height=False)
 
         self.canvas = tk.Canvas(
             self.window,
             width = self.size,
             height = self.size,
-            bg = "white",
+            bg = "black",
             highlightthickness = 0,
         )
-
         self.canvas.pack(padx = 10, pady = 10)
 
         self.instructions = tk.Label(
             self.window,
             text="Space: play/pause    N: next iteration    Esc: close",
-            bg="black",
-            fg="white",
+            bg="white",
+            fg="black",
         )
         self.instructions.pack(pady=(0, 12))
 
         self.window.bind("<space>", self.toggle)
         self.window.bind("n", self.next_iter)
         self.window.bind("<Escape>", self.close)
+        self.window.bind("<ButtonPress-1>", self.on_start_drag)
+        self.window.bind("<B1-Motion>", self.on_drag)
+        self.window.bind("<ButtonRelease-1>", self.on_drop)
+        #self window bind scroll zoom
 
         self.draw()
 
@@ -47,36 +55,55 @@ class GibbsVisual:
             self.canvas.delete(self.shapes.pop(0))
 
         means = self.Gibbs.get_means()
+        covtrace = np.trace(self.Gibbs.get_cov())
+
         if len(means) >= 2:
-            x1, y1 = self.to_canvas(means[-2])
-            x2, y2 = self.to_canvas(means[-1])
+            x1, y1 = self.Renderer.transform((means[-2] - self.center[0:2], covtrace[-2] - self.center[3]))
+            x2, y2 = self.Renderer.transform((means[-1] - self.center[0:2], covtrace[-1] - self.center[3]))
 
             line = self.canvas.create_line(
                 x1, y1,
                 x2, y2,
-                fill = "black",
+                fill = "white",
                 width = 2
             )
 
             self.shapes.append(line)
 
-    def to_canvas(self, point):
-        x, y = point
-
-        canvas_x = self.size / 2 + (x - self.center[0]) * self.scale
-        canvas_y = self.size / 2 - (y - self.center[1]) * self.scale
-
-        return canvas_x, canvas_y
-
     def grid(self):
-        self.canvas.create_line(self.size / 2, 0, self.size / 2, self.size)
-        self.canvas.create_line(0, self.size / 2, self.size, self.size / 2)
 
-        for i in range(9):
-            self.canvas.create_line((i+1) * self.size/10, 0, (i+1) * self.size/10, self.size)
+        lx1 = (-1, 0, 0)
+        ly1 = (0, -1, 0)
+        lz1 = (0, 0, -1)
 
-        for j in range(9):
-            self.canvas.create_line(0, (j+1)*self.size/10, self.size, (j+1)*self.size/10)
+        lx2 = (1, 0, 0)
+        ly2 = (0, 1, 0)
+        lz2 = (0, 0, 1)
+
+        self.canvas.create_line(self.Renderer.transform(lx1), self.Renderer.transform(lx2))
+        self.canvas.create_line(self.Renderer.transform(ly1), self.Renderer.transform(ly2))
+        self.canvas.create_line(self.Renderer.transform(lz1), self.Renderer.transform(lz2))
+
+    def on_start_drag(self, event):
+        self.drag_data['x'] = event.x
+        self.drag_data['y'] = event.y
+        self.drag_data['Item'] = self.canvas.find_closest(event.x, event.y)[0]
+
+    def on_drag(self, event):
+        dx = event.x - self.drag_data['x']
+        dy = event.y - self.drag_data['y']
+
+        self.Renderer.angles(angles)
+
+    def on_drop(self, event):
+        self.drag_data = {"x": 0, "y": 0, "item": None}
+
+
+    def zoom(self):
+        #---
+        #zoom functionality
+        #---
+        self.Renderer.scale(scale)
 
     def loop(self):
         if self.running:
