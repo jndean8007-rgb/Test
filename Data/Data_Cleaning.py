@@ -2,21 +2,22 @@ import os
 from pathlib import Path
 
 from Data.Import_Raw import Pc
-from Import_Raw import pc
 
 import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import URL, create_engine, text
-#aaaaa
-#awdoawudh
-pc = Pc()
-df = pd.read_sql("""
 
-""", con = pc.engine)
+ENV_FILE = Path('C:/Users/rosie/PycharmProjects/Git Testing/.env')
 
-for i in range(3):
-    print(i)
+load_dotenv(ENV_FILE, override=True)
 
+pc = Pc(os.getenv("DB_NAME"))
+df = pd.read_sql(
+    """
+    SELECT * from actuarial.house_prices
+    """,
+    con=pc.engine
+)
 
-
-print('Hello world righty now')
+x = df.drop(columns=["ID","SalePrice"])
+y = df[["SalePrice"]]
