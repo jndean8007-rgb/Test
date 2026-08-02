@@ -12,5 +12,5 @@ class Renderer:
         self.scale = scale
 
     def transform(self, coords): #output x, y coord
-
+        
 

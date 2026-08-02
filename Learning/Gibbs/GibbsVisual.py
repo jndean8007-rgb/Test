@@ -5,7 +5,7 @@ from Transform import Renderer
 
 class GibbsVisual:
 
-    def __init__(self, gibbs, lag, center, scale,size = 800, speed = 100):
+    def __init__(self, gibbs, lag, center, scale, size = 800, speed = 100):
         self.Gibbs = gibbs
         self.lag = lag
         self.center = center
@@ -46,7 +46,7 @@ class GibbsVisual:
         self.window.bind("<ButtonPress-1>", self.on_start_drag)
         self.window.bind("<B1-Motion>", self.on_drag)
         self.window.bind("<ButtonRelease-1>", self.on_drop)
-        #self window bind scroll zoom
+        self.window.bind("<MouseWheel>", self.zoom)
 
         self.draw()
 
@@ -92,18 +92,22 @@ class GibbsVisual:
     def on_drag(self, event):
         dx = event.x - self.drag_data['x']
         dy = event.y - self.drag_data['y']
-
-        self.Renderer.angles(angles)
+        self.angles[0] += dx / self.size
+        self.angles[1] += dy / self.size
+        self.Renderer.angles(self.angles)
 
     def on_drop(self, event):
         self.drag_data = {"x": 0, "y": 0, "item": None}
 
 
-    def zoom(self):
-        #---
-        #zoom functionality
-        #---
-        self.Renderer.scale(scale)
+    def zoom(self, event):
+        if event.delta > 0:
+            self.scale *= 1.1
+
+        if event.delta < 0:
+            self.scale *= 0.9
+
+        self.Renderer.scale(self.scale)
 
     def loop(self):
         if self.running:
