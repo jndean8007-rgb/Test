@@ -53,6 +53,13 @@ class Cell:
 
         return 1 if count == 3 else 0
 
+    @property
+    def alive(self):
+        if self.stat == 1:
+            return True
+        else:
+            return False
+
 
 
 class States:
@@ -63,11 +70,11 @@ class States:
         self.p = p
         self.state = [[Cell(self, (col,row)) for col in range(x)] for row in range(y)]
 
-    def get(self, y, x):
-        return self.state[x][y]
+    def get(self, x, y):
+        return self.state[y][x]
 
-    def get_cell(self, y, x):
-        return self.state[x][y]
+    def get_cell(self, x, y):
+        return self.state[y][x]
 
     def __repr__(self):
         alive = sum(cell.stat for row in self.state for cell in row)
@@ -85,9 +92,3 @@ class States:
                 self.state[row][col].stat = next_stats[row][col]
 
         return self
-state = States(10,9,0.5)
-for i in range(15):
-    print(state.cont())
-
-
-#rendering states through tkinter (note to self)#
