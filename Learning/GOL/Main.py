@@ -1,5 +1,5 @@
-import Life
-import GOLeng
+from Learning.GOL import GOLeng, Life
+
 
 def main():
 
