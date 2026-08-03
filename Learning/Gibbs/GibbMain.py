@@ -10,7 +10,7 @@ def main():
 
     gs = GibbsSampler([1, 2], 2, 3, [[1, 0], [0, 1]], samples)
 
-    gv = GibbsVisual(gs,  50, [3,4], 2500)
+    gv = GibbsVisual(gs,  50, np.array([3,4,5]), 2500)
 
     gv.start()
 if __name__ == '__main__':
