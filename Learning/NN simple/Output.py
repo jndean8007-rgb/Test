@@ -1,27 +1,28 @@
 import numpy as np
 
 class Output:
-    def __init__(self, nn, af = 'Sigmoid', type = 'Quant'):
+    def __init__(self, nn, output_type = 'Quant'):
         self.NN = nn
-        self.type = type
-        self.af = af
-        self.params = [0]
-        self.z = 0
-        self.value = 0
+        self.type = output_type
+        self.params = np.zeros(len(self.NN.form[-1]) + 1, dtype=float)
+        self.z = 0.0
+        self.value = 0.0
 
-        for i in self.NN.get_prev_len(len(self.NN)-1):
-            self.params.append(0)
+    def update(self):
+        previous_values = np.array(
+            [unit.value for unit in self.NN.form[-1]], dtype=float
+        )
+        inputs = np.concatenate(([1.0], previous_values))
+        self.z = float(np.dot(self.params, inputs))
 
-    def reg_value(self):
-        ins = [1, self.NN.get_prev_values(len(self.NN)-1)]
+        if self.type == 'Quant':
+            # Linear output for a quantitative regression target.
+            self.value = self.z
 
-        for i in range(len(self.params)):
-            self.z += self.params[i - 1] * ins[i - 1]
+        elif self.type == 'Binary':
+            self.value = 1.0 / (1.0 + np.exp(-self.z))
 
-        if self.af == 'Sigmoid':
-            self.value = np.exp(self.z) / (1 + np.exp(self.z))
-
-        elif self.af == 'ReLU':
-            self.value = np.max(0, self.z)
+        else:
+            raise ValueError(f"Unknown network type: {self.type}")
 
         return self.value
