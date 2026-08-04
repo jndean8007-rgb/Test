@@ -20,6 +20,10 @@ class Unit:
             size=input_count
         )
 
+        self.z = 0.0
+        self.value = 0.0
+        self.delta = 0.0
+
     def update(self):
         previous_values = self.NN.get_prev_values(self.index)
         inputs = np.concatenate(([1.0], previous_values))
@@ -35,3 +39,12 @@ class Unit:
             raise ValueError(f"Unknown activation function: {self.af}")
 
         return self.value
+
+    def activation_derivative(self):
+        if self.af == "Sigmoid":
+            return self.value * (1.0 - self.value)
+
+        if self.af == "ReLU":
+            return 1.0 if self.z > 0.0 else 0.0
+
+        raise ValueError(f"Unknown activation function: {self.af}")
