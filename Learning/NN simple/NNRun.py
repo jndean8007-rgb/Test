@@ -16,8 +16,8 @@ def main():
     net = Neural_Net.Neuralnet(
         data=X_train,
         target=y_train,
-        layers=(8, 8),
-        sgd_spec=(20, 20, 0.05),
+        layers=(5, 5),
+        sgd_spec=(20, 20, 0.03),
         output_type="Quant"
     )
 
