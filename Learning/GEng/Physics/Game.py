@@ -1,62 +1,94 @@
 import pygame as pg
-import renderer
-import world
-import editor
-import engine
-import camera
-import controls
-#hide cursor upon game initialization
+
+try:
+    from Physics.engine import Engine
+    from Physics.world import World
+    from interface.controls import Controls
+    from interface.renderer import Renderer
+except ImportError as error:
+    raise ImportError(f"Failed to import game modules: {error}") from error
+
 
 class Game:
     def __init__(self, width, height, frame_rate, datapath):
         self.width = width
         self.height = height
         self.frame_rate = frame_rate
-        self.renderer = renderer.Renderer()
-        self.controls = controls.Controls()
-        self.editor = editor.Editor()
-        self.world = world.World(datapath)
-        self.engine = engine.Engine(self.world)
-        self.camera = camera.Camera()
-        self.running = 'Off'
+        self.running = False
+        self.mouse_lock = False
+        self.dt = 0.0
 
         pg.init()
 
+        self.world = World(datapath)
+        self.world.load()
+        self.renderer = Renderer(self.width, self.height, self.world)
+        self.controls = Controls(
+            self.world.camera[0], self.world.body_list, self.renderer, self
+        )
+        self.engine = Engine(self.world)
         self.clock = pg.time.Clock()
-        self.clock.tick(60)
 
         self.menu()
 
     def menu(self):
-        menu = True
-        while menu:
+        tick = 0
+        while True:
             for event in pg.event.get():
-                self.controls.init_act(event)
-                self.editor.init_act(event)
-                if event.type == pg.KEYDOWN:
-                    if event.key == pg.K_ESCAPE:
-                        menu = False
-                        #destroy pygame window
-            self.renderer.initial_screen()
-            self.clock.tick(60)
+                if event.type == pg.QUIT:
+                    pg.quit()
+                    return
+                if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
+                    pg.quit()
+                    return
+                if self.controls.init_act(event):
+                    window_was_closed = self.run()
+                    if window_was_closed:
+                        return
+
+            self.renderer.initial_screen(tick)
+            tick += 1
+            self.clock.tick(self.frame_rate)
 
     def on_off(self):
-        if self.running == 'Off':
-            self.running = 'On'
-        else:
-            self.running = 'Off'
+        self.running = not self.running
 
-    def running(self):
-        while self.running == 'On':
+    def run(self):
+        self.running = True
+        self.mouse_lock = True
+        pg.event.set_grab(True)
+        pg.mouse.set_visible(False)
+
+        while self.running:
+            self.dt = self.clock.tick(self.frame_rate) / 1000
+
             for event in pg.event.get():
-                self.controls.act(event)
-                self.editor.act(event)
-                if event.type == pg.KEYDOWN:
-                    if event.key == pg.K_ESCAPE:
-                        self.running = 'Off'
-                        self.world.save()
-                        self.menu()
+                if event.type == pg.QUIT:
+                    self.world.save()
+                    self.running = False
+                    pg.quit()
+                    return True
+                if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
+                    self.world.save()
+                    self.running = False
+                    break
+                self.controls.handle_events(event)
 
-            self.engine.update(self.world)
-            self.renderer.render(self.width, self.height, self.world.get_bodies())
-            self.clock.tick(60)
+            self.controls.handle_held_keys(self.dt)
+
+            if not self.running:
+                break
+
+            self.engine.update(self.world, self.dt)
+            self.renderer.render()
+            if self.mouse_lock:
+                self.renderer.mouse_lock()
+            pg.display.flip()
+
+        self.mouse_lock = False
+        pg.event.set_grab(False)
+        pg.mouse.set_visible(True)
+        return False
+
+    def get_dt(self):
+        return self.dt

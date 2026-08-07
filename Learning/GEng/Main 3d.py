@@ -1,9 +1,13 @@
-import Game
+from Physics import Game
 import json
+from pathlib import Path
+
+#make startup portable
 
 def main():
-
-    game = Game.Game(800, 600, 60, C:/Users/rosie/PycharmProjects/PythonProject1/Test/Learning/GEng/3d data.json)
+    cwd = Path.cwd()
+    filepath = cwd / "3d_data.json"
+    game = Game.Game(800, 600, 60, filepath)
 
 if __name__ == '__main__':
     main()
